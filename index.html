@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mon Resto d'Amour 🍳</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            user-select: none;
+            -webkit-user-select: none;
+        }
+
+        body {
+            background-color: #fff9f2;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            width: 100vw;
+            overflow: hidden;
+            color: #4a3728;
+        }
+
+        .game-container {
+            background: white;
+            width: 90%;
+            max-width: 380px;
+            padding: 20px;
+            border-radius: 25px;
+            box-shadow: 0 15px 35px rgba(139, 94, 60, 0.15);
+            text-align: center;
+            border: 3px solid #ffb703;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .score-board {
+            background: #ffb703;
+            color: white;
+            padding: 15px;
+            border-radius: 15px;
+            font-size: 1.3rem;
+            font-weight: bold;
+        }
+
+        /* Zone pour cliquer */
+        .click-zone {
+            padding: 20px 0;
+        }
+
+        #cookBtn {
+            font-size: 5rem;
+            background: none;
+            border: none;
+            cursor: pointer;
+            transition: transform 0.1s;
+            display: inline-block;
+        }
+
+        #cookBtn:active {
+            transform: scale(0.85) rotate(-10deg);
+        }
+
+        .hint {
+            font-size: 0.9rem;
+            color: #8c7867;
+            margin-top: 5px;
+        }
+
+        /* Boutique */
+        .shop {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            text-align: left;
+        }
+
+        .shop-title {
+            font-size: 1.1rem;
+            font-weight: bold;
+            border-bottom: 2px solid #f0e6df;
+            padding-bottom: 5px;
+        }
+
+        .upgrade-btn {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background-color: #fb8500;
+            color: white;
+            border: none;
+            padding: 12px 15px;
+            font-size: 0.95rem;
+            border-radius: 12px;
+            cursor: pointer;
+            font-weight: bold;
+            width: 100%;
+            transition: opacity 0.2s;
+        }
+
+        .upgrade-btn:disabled {
+            background-color: #d6ccc2;
+            cursor: not-allowed;
+            opacity: 0.7;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="game-container" id="gameBox">
+        <div class="score-board">
+            💰 <span id="money">0</span> pièces<br>
+            <span style="font-size: 0.85rem; font-weight: normal;">Objectif : 500 pièces pour finir le service !</span>
+        </div>
+
+        <div class="click-zone">
+            <button id="cookBtn">🍳</button>
+            <div class="hint">Tapote la poêle pour cuisiner !</div>
+        </div>
+
+        <div class="shop">
+            <div class="shop-title">Améliorer le restaurant :</div>
+            
+            <button class="upgrade-btn" id="upClick" onclick="buyClickUpgrade()">
+                <span>🔪 Améliorer le couteau (+1/clic)</span>
+                <span id="costClick">50 💰</span>
+            </button>
+
+            <button class="upgrade-btn" id="upServer" onclick="buyServer()">
+                <span>👨‍🍳 Embaucher un serveur (+1/s)</span>
+                <span id="costServer">15 💰</span>
+            </button>
+
+            <button class="upgrade-btn" id="upRobot" onclick="buyRobot()">
+                <span>🤖 Robot-Cuiseur (+5/s)</span>
+                <span id="costRobot">100 💰</span>
+            </button>
+        </div>
+    </div>
+
+    <script>
+        let money = 0;
+        let clickValue = 1;
+        let autoIncome = 0;
+
+        let costClick = 50;
+        let costServer = 15;
+        let costRobot = 100;
+
+        const moneyEl = document.getElementById('money');
+        const cookBtn = document.getElementById('cookBtn');
+
+        // Clic manuel pour cuisiner
+        cookBtn.addEventListener('click', () => {
+            addMoney(clickValue);
+            // Petit effet pop textuel
+            createFloatingText(`+${clickValue}`);
+        });
+
+        function addMoney(amount) {
+            money += amount;
+            moneyEl.innerText = money;
+            checkShopButtons();
+            
+            // Condition de victoire
+            if (money >= 500) {
+                endGame();
+            }
+        }
+
+        // Amélioration du clic
+        function buyClickUpgrade() {
+            if (money >= costClick) {
+                money -= costClick;
+                clickValue += 1;
+                costClick = Math.round(costClick * 1.5);
+                document.getElementById('costClick').innerText = costClick + " 💰";
+                addMoney(0);
+            }
+        }
+
+        // Embauche serveur
+        function buyServer() {
+            if (money >= costServer) {
+                money -= costServer;
+                autoIncome += 1;
+                costServer = Math.round(costServer * 1.4);
+                document.getElementById('costServer').innerText = costServer + " 💰";
+                addMoney(0);
+            }
+        }
+
+        // Achat robot
+        function buyRobot() {
+            if (money >= costRobot) {
+                money -= costRobot;
+                autoIncome += 5;
+                costRobot = Math.round(costRobot * 1.4);
+                document.getElementById('costRobot').innerText = costRobot + " 💰";
+                addMoney(0);
+            }
+        }
+
+        // Vérification des prix pour activer/désactiver les boutons
+        function checkShopButtons() {
+            document.getElementById('upClick').disabled = (money < costClick);
+            document.getElementById('upServer').disabled = (money < costServer);
+            document.getElementById('upRobot').disabled = (money < costRobot);
+        }
+
+        // Revenus automatiques toutes les secondes
+        setInterval(() => {
+            if (autoIncome > 0 && money < 500) {
+                addMoney(autoIncome);
+            }
+        }, 1000);
+
+        // Petit texte volant quand on clique
+        function createFloatingText(txt) {
+            const f = document.createElement('div');
+            f.innerText = txt;
+            f.style.position = 'absolute';
+            f.style.left = (window.innerWidth / 2 + (Math.random() * 40 - 20)) + 'px';
+            f.style.top = (window.innerHeight / 2 - 40) + 'px';
+            f.style.color = '#fb8500';
+            f.style.fontWeight = 'bold';
+            f.style.pointerEvents = 'none';
+            f.style.transition = 'all 0.6s ease-out';
+            document.body.appendChild(f);
+
+            setTimeout(() => {
+                f.style.transform = 'translateY(-50px)';
+                f.style.opacity = '0';
+            }, 10);
+            setTimeout(() => f.remove(), 600);
+        }
+
+        function endGame() {
+            const box = document.getElementById('gameBox');
+            box.style.borderColor = '#ff4d6d';
+            box.innerHTML = `
+                <div style="font-size: 4rem; margin-bottom: 10px;">👑⭐</div>
+                <h2 style="color: #c9184a; font-size: 1.5rem; margin-bottom: 15px;">Félicitations Chef !</h2>
+                <p style="font-size: 1.1rem; line-height: 1.6; color: #4a3728;">
+                    Le restaurant a atteint les 500 pièces, le service est complet !<br><br>
+                    Mais ne t'en fais pas... la plus belle table du restaurant est éternellement réservée pour toi. ❤️
+                </p>
+            `;
+        }
+
+        // Initialisation
+        addMoney(0);
+    </script>
+</body>
+</html>
